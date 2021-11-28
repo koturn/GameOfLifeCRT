@@ -29,11 +29,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaTest: 1
+    - _AlphaToMask: 0
     - _Cull: 0
     - _Cutoff: 0.003922
     - _DstFactor: 10
     - _HueOffset: 0.5
     - _HueOnly: 1
+    - _OffsetFact: 0
+    - _OffsetUnit: 0
     - _RenderingMode: 5
     - _SaturationOffset: 0
     - _SrcFactor: 5

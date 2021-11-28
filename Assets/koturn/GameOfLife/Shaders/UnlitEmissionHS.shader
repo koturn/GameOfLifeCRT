@@ -2,32 +2,6 @@ Shader "koturn/GameOfLife/UnlitEmissionHS"
 {
     Properties
     {
-        [HideInInspector]
-        _RenderingMode("Rendering Mode", Int) = 2
-
-        [Enum(UnityEngine.Rendering.BlendMode)]
-        _SrcFactor("Blend Source Factor", Int) = 5  // Default: SrcAlpha
-
-        [Enum(UnityEngine.Rendering.BlendMode)]
-        _DstFactor("Blend Destination Factor", Int) = 10  // Default: OneMinusSrcAlpha
-
-        [Enum(Off, 0, On, 1)]
-        _ZWrite("ZWrite", Int) = 0  // Default: Off
-
-
-        [Enum(UnityEngine.Rendering.CompareFunction)]
-        _ZTest("ZTest", Int) = 4  // Default: LEqual
-
-        [Enum(UnityEngine.Rendering.CullMode)]
-        _Cull("Culling Mode", Int) = 2  // Default: Back
-
-
-        [Toggle]
-        _AlphaTest("Alpha test", Int) = 0
-
-        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
-
         [NoScaleOffset]
         _MainTex ("Main texture", 2D) = "white" {}
         _Color ("Multiplicative color for _MainTex", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -44,19 +18,54 @@ Shader "koturn/GameOfLife/UnlitEmissionHS"
         _HueOffset ("Offset of Hue (H)", Range(0.0, 1.0)) = 0.0
         _SaturationOffset ("Offset of Saturation (S)", Range(-1.0, 1.0)) = 0.0
         _ValueOffset ("Offset of Value (V)", Range(-1.0, 1.0)) = 0.0
+
+
+        [HideInInspector]
+        _RenderingMode("Rendering Mode", Int) = 2
+
+        [Enum(UnityEngine.Rendering.CullMode)]
+        _Cull("Culling Mode", Int) = 2  // Default: Back
+
+        [Toggle]
+        _AlphaTest("Alpha test", Int) = 0
+
+        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        [Enum(UnityEngine.Rendering.BlendMode)]
+        _SrcFactor("Blend Source Factor", Int) = 5  // Default: SrcAlpha
+
+        [Enum(UnityEngine.Rendering.BlendMode)]
+        _DstFactor("Blend Destination Factor", Int) = 10  // Default: OneMinusSrcAlpha
+
+        [Enum(Off, 0, On, 1)]
+        _ZWrite("ZWrite", Int) = 0  // Default: Off
+
+        [Enum(UnityEngine.Rendering.CompareFunction)]
+        _ZTest("ZTest", Int) = 4  // Default: LEqual
+
+        [Enum(2D, 0, 3D, 1)]
+        _OffsetFact("Offset Factor", Int) = 0
+
+        _OffsetUnit("Offset Units", Range(-100, 100)) = 0
+
+        [Enum(Off, 0, On, 1)]
+        _AlphaToMask("Alpha To Mask", Int) = 0  // Default: Off
     }
+
     SubShader
     {
         Tags
         {
-            "RenderType" = "Opaque"
+            "RenderType" = "Transparent"
             "Queue" = "Transparent"
         }
 
         Cull [_Cull]
         Blend [_SrcFactor] [_DstFactor]
-        ZWrite Off
-        ZTest LEqual
+        ZWrite [_ZWrite]
+        ZTest [_ZTest]
+        Offset [_OffsetFact], [_OffsetUnit]
+        AlphaToMask [_AlphaToMask]
 
         Pass
         {
@@ -91,7 +100,6 @@ Shader "koturn/GameOfLife/UnlitEmissionHS"
 
             UNITY_DECLARE_TEX2D(_MainTex);
             uniform float4 _Color;
-            uniform float _Cutoff;
             UNITY_DECLARE_TEX2D(_EmissionTex);
             uniform float4 _EmissionColor;
             uniform float _TimeScale;
@@ -100,6 +108,9 @@ Shader "koturn/GameOfLife/UnlitEmissionHS"
             uniform float _SaturationOffset;
             uniform float _ValueOffset;
 #endif  // !_HUEONLY_ON
+#ifdef _ALPHATEST_ON
+            uniform float _Cutoff;
+#endif  // _ALPHATEST_ON
 
 
             inline float3 rgb2hsv(float3 rgb);

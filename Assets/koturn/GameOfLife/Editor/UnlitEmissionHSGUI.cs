@@ -30,16 +30,6 @@ namespace Koturn.GameOfLife
         /// <param name="mps">Material properties of the current selected shader</param>
         public override void OnGUI(MaterialEditor me, MaterialProperty[] mps)
         {
-            EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
-            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-            {
-                DrawBlendMode(me, mps);
-                ShaderProperty(me, mps, "_ZTest");
-                ShaderProperty(me, mps, "_Cull");
-            }
-
-            EditorGUILayout.Space();
-
             EditorGUILayout.LabelField("Main Texture & Color", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
@@ -72,14 +62,26 @@ namespace Koturn.GameOfLife
 
             EditorGUILayout.Space();
 
-            GUILayout.Label("Advanced Options", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                me.RenderQueueField();
+                ShaderProperty(me, mps, "_Cull", false);
+                DrawBlendMode(me, mps);
+                ShaderProperty(me, mps, "_ZTest");
+                DrawOffsetProperty(me, mps, "_OffsetFact", "_OffsetUnit");
+                ShaderProperty(me, mps, "_AlphaToMask", false);
+
+                EditorGUILayout.Space();
+
+                GUILayout.Label("Advanced Options", EditorStyles.boldLabel);
+                using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+                {
+                    me.RenderQueueField();
 #if UNITY_5_6_OR_NEWER
-                // me.EnableInstancingField();
-                me.DoubleSidedGIField();
+                    // me.EnableInstancingField();
+                    me.DoubleSidedGIField();
 #endif  // UNITY_5_6_OR_NEWER
+                }
             }
         }
 
@@ -88,49 +90,40 @@ namespace Koturn.GameOfLife
         /// </summary>
         /// <param name="me">A <see cref="MaterialEditor"/></param>
         /// <param name="mps"><see cref="MaterialProperty"/> array</param>
-        private static void DrawBlendMode(MaterialEditor me, MaterialProperty[] mps)
+        protected void DrawBlendMode(MaterialEditor me, MaterialProperty[] mps)
         {
             using (var ccScope = new EditorGUI.ChangeCheckScope())
             {
-                var blendMode = FindProperty("_RenderingMode", mps);
-                var mode = (RenderingMode)EditorGUILayout.EnumPopup(blendMode.displayName, (RenderingMode)blendMode.floatValue);
-                blendMode.floatValue = (float)mode;
-                if (mode == RenderingMode.Custom)
-                {
-                    ShaderProperty(me, mps, "_ZWrite");
-                    ShaderProperty(me, mps, "_SrcFactor");
-                    ShaderProperty(me, mps, "_DstFactor");
+                var mpBlendMode = FindProperty("_RenderingMode", mps);
+                var mode = (RenderingMode)EditorGUILayout.EnumPopup(mpBlendMode.displayName, (RenderingMode)mpBlendMode.floatValue);
+                mpBlendMode.floatValue = (float)mode;
 
-                    using (new EditorGUI.IndentLevelScope())
+                if (ccScope.changed && mode != RenderingMode.Custom)
+                {
+                    foreach (var obj in mpBlendMode.targets)
                     {
-                        var mpAlphaTest = FindProperty("_AlphaTest", mps);
-                        ShaderProperty(me, mpAlphaTest);
-                        if (mpAlphaTest.floatValue >= 0.5)
-                        {
-                            ShaderProperty(me, mps, "_Cutoff");
-                        }
+                        ApplyBlendMode(obj as Material, mode);
                     }
                 }
-                else
+
+                using (new EditorGUI.DisabledScope(mode != RenderingMode.Cutout && mode != RenderingMode.Custom))
                 {
-                    if (ccScope.changed)
+                    var mpAlphaTest = FindProperty("_AlphaTest", mps);
+                    ShaderProperty(me, mpAlphaTest);
+                    using (new EditorGUI.IndentLevelScope())
+                    using (new EditorGUI.DisabledScope(mpAlphaTest.floatValue < 0.5))
                     {
-                        foreach (var obj in blendMode.targets)
-                        {
-                            ApplyBlendMode(obj as Material, mode);
-                        }
+                        ShaderProperty(me, mps, "_Cutoff");
                     }
-                    if (mode == RenderingMode.Cutout)
-                    {
-                        using (new EditorGUI.IndentLevelScope())
-                        {
-                            ShaderProperty(me, mps, "_Cutoff");
-                        }
-                    }
+                }
+
+                using (new EditorGUI.DisabledScope(mode != RenderingMode.Custom))
+                {
+                    DrawBlendProperty(me, mps, "_SrcFactor", "_DstFactor");
+                    ShaderProperty(me, mps, "_ZWrite");
                 }
             }
         }
-
 
         /// <summary>
         /// Change blend of <paramref name="material"/>.
@@ -192,14 +185,65 @@ namespace Koturn.GameOfLife
         }
 
         /// <summary>
+        /// Draw inspector items of "Blend".
+        /// </summary>
+        /// <param name="me">A <see cref="MaterialEditor"/></param>
+        /// <param name="mps"><see cref="MaterialProperty"/> array</param>
+        /// <param name="propNameSrcFactor">Property name for the first argument of "Blend"</param>
+        /// <param name="propNameDstFactor">Property name for the second argument of "Blend"</param>
+        protected void DrawBlendProperty(MaterialEditor me, MaterialProperty[] mps, string propNameSrcFactor, string propNameDstFactor)
+        {
+            var propSrcFactor = FindProperty(propNameSrcFactor, mps, false);
+            var propDstFactor = FindProperty(propNameDstFactor, mps, false);
+            if (propSrcFactor == null || propDstFactor == null)
+            {
+                return;
+            }
+            GUILayout.Label("Blend");
+            using (new EditorGUI.IndentLevelScope())
+            {
+                ShaderProperty(me, propSrcFactor);
+                ShaderProperty(me, propDstFactor);
+            }
+        }
+
+        /// <summary>
+        /// Draw inspector items of "Offset".
+        /// </summary>
+        /// <param name="me">A <see cref="MaterialEditor"/></param>
+        /// <param name="mps"><see cref="MaterialProperty"/> array</param>
+        /// <param name="propNameFactor">Property name for the first argument of "Offset"</param>
+        /// <param name="propNameUnit">Property name for the second argument of "Offset"</param>
+        protected void DrawOffsetProperty(MaterialEditor me, MaterialProperty[] mps, string propNameFactor, string propNameUnit)
+        {
+            var propFactor = FindProperty(propNameFactor, mps, false);
+            var propUnit = FindProperty(propNameUnit, mps, false);
+            if (propFactor == null || propUnit == null)
+            {
+                return;
+            }
+            GUILayout.Label("Offset");
+            using (new EditorGUI.IndentLevelScope())
+            {
+                ShaderProperty(me, propFactor);
+                ShaderProperty(me, propUnit);
+            }
+        }
+
+        /// <summary>
         /// Draw default item of specified shader property.
         /// </summary>
         /// <param name="me">A <see cref="MaterialEditor"/></param>
         /// <param name="mps"><see cref="MaterialProperty"/> array</param>
         /// <param name="propName">Name of shader property</param>
-        private static void ShaderProperty(MaterialEditor me, MaterialProperty[] mps, string propName)
+        /// <param name="isMandatory">If <c>true</c> then this method will throw an exception
+        /// if a property with <<paramref name="propName"/> was not found.</param>
+        public static void ShaderProperty(MaterialEditor me, MaterialProperty[] mps, string propName, bool isMandatory = true)
         {
-            ShaderProperty(me, FindProperty(propName, mps));
+            var prop = FindProperty(propName, mps, isMandatory);
+            if (prop != null) {
+                ShaderProperty(me, prop);
+            }
         }
 
         /// <summary>
