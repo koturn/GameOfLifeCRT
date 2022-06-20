@@ -58,6 +58,7 @@ Shader "koturn/GameOfLife/UnlitEmissionHS"
         {
             "RenderType" = "Transparent"
             "Queue" = "Transparent"
+            "IgnoreProjector" = "True"
             "VRCFallback" = "UnlitFade"
         }
 
