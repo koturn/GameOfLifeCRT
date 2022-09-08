@@ -83,7 +83,8 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
              * @param [in] uv  Coordinate of UV.
              * @return (0.0, 0.0, 0.0, 0.0) of uv is outside of texture, otherwise color on specified corrdinate.
              */
-            inline float tex2DCutOutsideA(sampler2D tex, float2 uv) {
+            inline float tex2DCutOutsideA(sampler2D tex, float2 uv)
+            {
                 const float2 v = step(0.0, uv) * step(uv, 1.0);
                 return v.x * v.y * tex2D(tex, uv).a;
             }
@@ -97,6 +98,7 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
             float4 frag(v2f_customrendertexture i) : COLOR
             {
                 const float2 d = 1.0 / _CustomRenderTextureInfo.xy;
+                const float4 d2 = float4(d.xy, -d.y, 0.0);
                 const float2 uv = i.globalTexcoord;
 
 #ifdef _CUTOUTSIDE_ON
@@ -104,35 +106,36 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
                     step(
                         _Color.a,
                         float4(
-                            tex2DCutOutsideA(_SelfTexture2D, uv - d),
-                            tex2DCutOutsideA(_SelfTexture2D, float2(uv.x, uv.y - d.y)),
-                            tex2DCutOutsideA(_SelfTexture2D, float2(uv.x + d.x, uv.y - d.y)),
-                            tex2DCutOutsideA(_SelfTexture2D, float2(uv.x - d.x, uv.y))))
+                            tex2DCutOutsideA(_SelfTexture2D, uv - d2.xy),
+                            tex2DCutOutsideA(_SelfTexture2D, uv - d2.wy),
+                            tex2DCutOutsideA(_SelfTexture2D, uv + d2.xz),
+                            tex2DCutOutsideA(_SelfTexture2D, uv - d2.xw)))
                     + step(
                         _Color.a,
                         float4(
-                            tex2DCutOutsideA(_SelfTexture2D, float2(uv.x + d.x, uv.y)),
-                            tex2DCutOutsideA(_SelfTexture2D, float2(uv.x - d.x, uv.y + d.y)),
-                            tex2DCutOutsideA(_SelfTexture2D, float2(uv.x, uv.y + d.y)),
-                            tex2DCutOutsideA(_SelfTexture2D, uv + d))),
+                            tex2DCutOutsideA(_SelfTexture2D, uv + d2.xw),
+                            tex2DCutOutsideA(_SelfTexture2D, uv - d2.xz),
+                            tex2DCutOutsideA(_SelfTexture2D, uv + d2.wy),
+                            tex2DCutOutsideA(_SelfTexture2D, uv + d2.xy))),
                     ones4);
 #else
                 const float sum = dot(
                     step(
                         _Color.a,
                         float4(
-                            tex2D(_SelfTexture2D, uv - d).a,
-                            tex2D(_SelfTexture2D, float2(uv.x, uv.y - d.y)).a,
-                            tex2D(_SelfTexture2D, float2(uv.x + d.x, uv.y - d.y)).a,
-                            tex2D(_SelfTexture2D, float2(uv.x - d.x, uv.y)).a))
+                            tex2D(_SelfTexture2D, uv - d2.xy).a,
+                            tex2D(_SelfTexture2D, uv - d2.wy).a,
+                            tex2D(_SelfTexture2D, uv + d2.xz).a,
+                            tex2D(_SelfTexture2D, uv - d2.xw).a))
                     + step(
                         _Color.a,
                         float4(
-                            tex2D(_SelfTexture2D, float2(uv.x + d.x, uv.y)).a,
-                            tex2D(_SelfTexture2D, float2(uv.x - d.x, uv.y + d.y)).a,
-                            tex2D(_SelfTexture2D, float2(uv.x, uv.y + d.y)).a,
-                            tex2D(_SelfTexture2D, uv + d).a)),
+                            tex2D(_SelfTexture2D, uv + d2.xw).a,
+                            tex2D(_SelfTexture2D, uv - d2.xz).a,
+                            tex2D(_SelfTexture2D, uv + d2.wy).a,
+                            tex2D(_SelfTexture2D, uv + d2.xy).a)),
                     ones4);
+
 #endif  // _CUTOUTSIDE_ON
 
 #if _COMPMETHOD_NORMAL
