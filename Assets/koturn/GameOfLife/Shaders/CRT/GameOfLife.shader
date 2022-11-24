@@ -85,8 +85,7 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
              */
             inline float tex2DCutOutsideA(sampler2D tex, float2 uv)
             {
-                const float2 v = step(0.0, uv) * step(uv, 1.0);
-                return v.x * v.y * tex2D(tex, uv).a;
+                return all(saturate(uv) == uv) ? tex2D(tex, uv).a : 0.0;
             }
 #endif  // _CUTOUTSIDE_ON
 
