@@ -45,6 +45,9 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
         [Toggle]
         _CutOutside ("Cut outside of texture; Treat as zero outside texels", Float) = 0
 
+        [Toggle(_USE_OPTIMIZED_VERTEX_SHADER_ON)]
+        _UseOptimizedVertexShader ("Use Optimized vertex shader", Int) = 1
+
         // shader_feature_fragment: _COMPMETHOD_NORMAL _COMPMETHOD_ACCURATE
         [KeywordEnum(Normal, Accurate)]
         _CompMethod ("Compare method", Float) = 0
@@ -62,10 +65,11 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
             CGPROGRAM
             #pragma target 3.0
 
-            #include "UnityCustomRenderTexture.cginc"
+            #include "CustomRenderTextureEx.cginc"
 
-            #pragma vertex CustomRenderTextureVertexShader
+            #pragma vertex vert
             #pragma fragment frag
+            #pragma shader_feature_local_vertex _ _USE_OPTIMIZED_VERTEX_SHADER_ON
             #pragma shader_feature_local_fragment _ _CUTOUTSIDE_ON
             #pragma shader_feature_local_fragment _COMPMETHOD_NORMAL _COMPMETHOD_ACCURATE
 
@@ -88,6 +92,20 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
                 return all(saturate(uv) == uv) ? tex2D(tex, uv).a : 0.0;
             }
 #endif  // _CUTOUTSIDE_ON
+
+            /*!
+             * @brief Vertex shader function.
+             * @param [in] v  Input data
+             * @return Output for fragment shader (v2f_customrendertexture).
+             */
+            v2f_customrendertexture vert(appdata_customrendertexture IN)
+            {
+#ifdef _USE_OPTIMIZED_VERTEX_SHADER_ON
+                return CustomRenderTextureVertexShaderEx(IN);
+#else
+                return CustomRenderTextureVertexShader(IN);
+#endif  // _USE_OPTIMIZED_VERTEX_SHADER_ON
+            }
 
             /*!
              * @brief Fragment shader function.

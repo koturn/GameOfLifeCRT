@@ -19,6 +19,7 @@ namespace Koturn.GameOfLife
         {
             ShaderProperty(me, mps, "_Color");
             ShaderProperty(me, mps, "_CutOutside");
+            ShaderProperty(me, mps, "_UseOptimizedVertexShader");
             ShaderProperty(me, mps, "_CompMethod");
 
             EditorGUILayout.Space();
