@@ -43,14 +43,14 @@ Shader "koturn/GameOfLife/CRT/GameOfLife"
 
         // shader_feature_fragment: _CUTOUTSIDE_ON
         [Toggle]
-        _CutOutside ("Cut outside of texture; Treat as zero outside texels", Float) = 0
+        _CutOutside ("Cut outside of texture; Treat as zero outside texels", Int) = 0
 
         [Toggle(_USE_OPTIMIZED_VERTEX_SHADER_ON)]
         _UseOptimizedVertexShader ("Use Optimized vertex shader", Int) = 1
 
         // shader_feature_fragment: _COMPMETHOD_NORMAL _COMPMETHOD_ACCURATE
         [KeywordEnum(Normal, Accurate)]
-        _CompMethod ("Compare method", Float) = 0
+        _CompMethod ("Compare method", Int) = 0
     }
 
     SubShader
