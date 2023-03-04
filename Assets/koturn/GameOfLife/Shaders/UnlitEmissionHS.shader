@@ -21,35 +21,35 @@ Shader "koturn/GameOfLife/UnlitEmissionHS"
 
 
         [HideInInspector]
-        _RenderingMode("Rendering Mode", Int) = 2
+        _RenderingMode ("Rendering Mode", Int) = 2
 
         [Enum(UnityEngine.Rendering.CullMode)]
-        _Cull("Culling Mode", Int) = 2  // Default: Back
+        _Cull ("Culling Mode", Int) = 2  // Default: Back
 
         [Toggle]
-        _AlphaTest("Alpha test", Int) = 0
+        _AlphaTest ("Alpha test", Int) = 0
 
-        _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-
-        [Enum(UnityEngine.Rendering.BlendMode)]
-        _SrcFactor("Blend Source Factor", Int) = 5  // Default: SrcAlpha
+        _Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         [Enum(UnityEngine.Rendering.BlendMode)]
-        _DstFactor("Blend Destination Factor", Int) = 10  // Default: OneMinusSrcAlpha
+        _SrcFactor ("Blend Source Factor", Int) = 5  // Default: SrcAlpha
+
+        [Enum(UnityEngine.Rendering.BlendMode)]
+        _DstFactor ("Blend Destination Factor", Int) = 10  // Default: OneMinusSrcAlpha
 
         [Enum(Off, 0, On, 1)]
-        _ZWrite("ZWrite", Int) = 0  // Default: Off
+        _ZWrite ("ZWrite", Int) = 0  // Default: Off
 
         [Enum(UnityEngine.Rendering.CompareFunction)]
-        _ZTest("ZTest", Int) = 4  // Default: LEqual
+        _ZTest ("ZTest", Int) = 4  // Default: LEqual
 
         [Enum(2D, 0, 3D, 1)]
-        _OffsetFact("Offset Factor", Int) = 0
+        _OffsetFact ("Offset Factor", Int) = 0
 
-        _OffsetUnit("Offset Units", Range(-100, 100)) = 0
+        _OffsetUnit ("Offset Units", Range(-100, 100)) = 0
 
         [Enum(Off, 0, On, 1)]
-        _AlphaToMask("Alpha To Mask", Int) = 0  // Default: Off
+        _AlphaToMask ("Alpha To Mask", Int) = 0  // Default: Off
     }
 
     SubShader
